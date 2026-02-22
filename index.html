@@ -1,356 +1,242 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ride Hailing MVP (HTML)</title>
-    <style>
-      :root {
-        --bg: #f4f6fb;
-        --card: #ffffff;
-        --text: #111827;
-        --muted: #6b7280;
-        --primary: #facc15;
-        --primary-dark: #eab308;
-        --success: #16a34a;
-        --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-        --radius: 18px;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: linear-gradient(180deg, #f8faff, #eef2ff 40%, #f4f6fb);
-        color: var(--text);
-      }
-      .shell {
-        max-width: 440px;
-        margin: 20px auto;
-        min-height: 90vh;
-        background: var(--card);
-        border-radius: 24px;
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-      }
-      .hidden { display: none !important; }
-      .screen { padding: 20px; min-height: 720px; }
-      h1, h2, h3, p { margin: 0; }
-      .muted { color: var(--muted); }
-      .sp-8 { margin-top: 8px; }
-      .sp-12 { margin-top: 12px; }
-      .sp-16 { margin-top: 16px; }
-      .sp-20 { margin-top: 20px; }
-      .sp-24 { margin-top: 24px; }
-      .sp-28 { margin-top: 28px; }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Endless Runner HTML Prototype</title>
+  <style>
+    :root { --bg:#081024; --panel:#111a33; --text:#ecf3ff; --accent:#50f0ff; --danger:#ff5a74; --coin:#ffd447; }
+    * { box-sizing:border-box; font-family:Inter,system-ui,sans-serif; }
+    body { margin:0; background:radial-gradient(circle at 50% 10%, #13203f, var(--bg)); color:var(--text); min-height:100vh; display:grid; place-items:center; }
+    .app { width:min(460px, 100vw); height:min(860px, 100vh); border:1px solid #26365f; border-radius:16px; overflow:hidden; position:relative; background:#050b1a; }
+    .screen { position:absolute; inset:0; display:none; padding:24px; }
+    .screen.active { display:grid; }
+    #splash, #menu, #gameover { place-content:center; text-align:center; gap:12px; }
+    #game { grid-template-rows:auto 1fr; padding:0; }
+    h1,h2,p { margin:0; }
+    .btn { border:0; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer; background:var(--accent); color:#041018; }
+    .btn.secondary { background:#2c3d6b; color:var(--text); }
+    .hud { display:flex; gap:8px; padding:10px; background:rgba(10,16,31,.9); border-bottom:1px solid #203058; align-items:center; }
+    .pill { background:#1b2950; border:1px solid #2d437b; border-radius:999px; padding:6px 10px; font-size:13px; }
+    .grow { flex:1; }
+    canvas { width:100%; height:100%; display:block; }
+    #pausePanel { position:absolute; inset:56px 0 0 0; display:none; background:rgba(4,7,14,.65); place-content:center; text-align:center; gap:10px; }
+    #pausePanel.active { display:grid; }
+    .small { font-size:12px; opacity:.85; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="splash" class="screen active">
+      <h1>🏃 Endless Runner</h1>
+      <p>Subway-style HTML prototype with swipe controls.</p>
+      <button class="btn" id="toMenu">Continue</button>
+    </section>
 
-      .input {
-        width: 100%;
-        border: 1px solid #d1d5db;
-        border-radius: 12px;
-        padding: 12px 14px;
-        font-size: 15px;
-      }
-      .btn {
-        width: 100%;
-        border: 0;
-        border-radius: 12px;
-        padding: 13px;
-        font-size: 15px;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      .btn-primary { background: var(--primary); color: #1f2937; }
-      .btn-primary:hover { background: var(--primary-dark); }
-      .btn-dark { background: #111827; color: white; }
-      .btn-light { background: #e5e7eb; color: #111827; }
-      .btn-success { background: var(--success); color: white; }
-      .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+    <section id="menu" class="screen">
+      <h2>Main Menu</h2>
+      <p>Swipe ← → to change lane, ↑ jump, ↓ slide, double tap = hoverboard shield.</p>
+      <button class="btn" id="startBtn">Start Run</button>
+    </section>
 
-      .card {
-        background: var(--card);
-        border: 1px solid #e5e7eb;
-        border-radius: var(--radius);
-        padding: 14px;
-        box-shadow: 0 6px 20px rgba(17,24,39,0.06);
-      }
-      .row { display: flex; gap: 10px; }
-      .row > * { flex: 1; }
-      .title { font-size: 28px; font-weight: 800; }
-      .subtitle { font-size: 15px; }
-      .map {
-        height: 260px;
-        border-radius: 0 0 22px 22px;
-        background: radial-gradient(circle at 20% 20%, #bfdbfe, #93c5fd, #60a5fa);
-        display: grid;
-        place-items: center;
-        color: #0c4a6e;
-        font-weight: 700;
-      }
-      .sheet {
-        margin-top: -16px;
-        background: white;
-        border-radius: 22px 22px 0 0;
-        padding: 16px;
-        border-top: 1px solid #e5e7eb;
-      }
-      .ride-option {
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-      }
-      .ride-option.active {
-        border-color: #facc15;
-        background: #fef9c3;
-      }
-      .status-pill {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: #eef2ff;
-        color: #3730a3;
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .loader {
-        width: 44px;
-        height: 44px;
-        border: 5px solid #fde68a;
-        border-top-color: #f59e0b;
-        border-radius: 50%;
-        animation: spin 0.9s linear infinite;
-        margin: 18px auto 0;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .top-switch {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .toggle {
-        width: 50px;
-        height: 28px;
-        border-radius: 999px;
-        background: #d1d5db;
-        position: relative;
-        cursor: pointer;
-      }
-      .toggle::after {
-        content: "";
-        width: 22px;
-        height: 22px;
-        background: white;
-        border-radius: 50%;
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        transition: all .2s;
-      }
-      .toggle.on { background: #facc15; }
-      .toggle.on::after { left: 25px; }
-    </style>
-  </head>
-  <body>
-    <main class="shell">
-      <section id="auth" class="screen">
-        <h1 class="title">Welcome Rider 👋</h1>
-        <p class="subtitle muted sp-8">Enter phone and OTP (mock success).</p>
-        <input id="phone" class="input sp-24" placeholder="Phone number" />
-        <input id="otp" class="input sp-12" placeholder="6-digit OTP" maxlength="6" />
-        <button id="continueBtn" class="btn btn-primary sp-20" disabled>Continue (Mock Verify)</button>
-      </section>
+    <section id="game" class="screen">
+      <div class="hud">
+        <div class="pill" id="score">Score: 0</div>
+        <div class="pill" id="coins">Coins: 0</div>
+        <div class="pill" id="mult">x1</div>
+        <div class="grow"></div>
+        <button class="btn secondary" id="pauseBtn">Pause</button>
+      </div>
+      <canvas id="canvas" width="460" height="800"></canvas>
+      <div id="pausePanel">
+        <h2>Paused</h2>
+        <button class="btn" id="resumeBtn">Resume</button>
+      </div>
+    </section>
 
-      <section id="role" class="screen hidden">
-        <h2>Choose your mode</h2>
-        <div class="card sp-20" onclick="go('rider-home')">
-          <h3>Rider App</h3>
-          <p class="muted sp-8">Book a ride with bike, auto, or cab.</p>
-        </div>
-        <div class="card sp-12" onclick="go('captain-login')">
-          <h3>Captain App</h3>
-          <p class="muted sp-8">Manage ride requests and trip controls.</p>
-        </div>
-      </section>
+    <section id="gameover" class="screen">
+      <h2>Game Over</h2>
+      <p id="finalScore"></p>
+      <p id="finalCoins"></p>
+      <button class="btn" id="restartBtn">Restart</button>
+      <button class="btn secondary" id="homeBtn">Home</button>
+    </section>
+  </div>
 
-      <section id="rider-home" class="hidden">
-        <div class="map">Mock Map Placeholder</div>
-        <div class="sheet">
-          <input id="pickup" class="input" value="Indiranagar Metro Station" />
-          <input id="drop" class="input sp-12" value="MG Road, Bengaluru" />
-          <p class="sp-16 muted" style="font-weight:600;">Choose ride</p>
-          <div id="rides" class="sp-12"></div>
-          <button class="btn btn-primary sp-16" onclick="openConfirm()">Review Ride</button>
-        </div>
-      </section>
+<script>
+const screens = ['splash','menu','game','gameover'];
+const show = (id) => screens.forEach(s => document.getElementById(s).classList.toggle('active', s===id));
 
-      <section id="confirm" class="screen hidden">
-        <h2>Confirm Ride</h2>
-        <div class="card sp-20">
-          <p class="muted">Pickup</p><p id="cPickup"></p>
-          <p class="muted sp-12">Drop</p><p id="cDrop"></p>
-          <p class="muted sp-12">Ride</p><p id="cRide"></p>
-          <p class="muted sp-12">Fare</p><p id="cFare" style="font-size:24px;font-weight:800"></p>
-        </div>
-        <button class="btn btn-primary sp-20" onclick="searchDriver()">Confirm Booking</button>
-      </section>
+const c = document.getElementById('canvas'), ctx = c.getContext('2d');
+const W = c.width, H = c.height;
+const laneX = [W*0.3, W*0.5, W*0.7];
+let g;
 
-      <section id="searching" class="screen hidden" style="display:grid;place-content:center;text-align:center;">
-        <div class="loader"></div>
-        <h3 class="sp-16">Finding nearby drivers…</h3>
-      </section>
+function resetGame() {
+  g = {
+    running:true, paused:false, lane:1, y:0, vy:0, sliding:false, slideT:0,
+    speed:8, time:0, distance:0, score:0, coins:0, mult:1,
+    invincibleT:0, hoverCooldown:0,
+    obstacles:[], coinsArr:[], powers:[], trains:[],
+    spawnT:0
+  };
+}
 
-      <section id="assigned" class="screen hidden">
-        <h2>Driver Assigned ✅</h2>
-        <div class="card sp-20">
-          <p style="font-weight:700">Ravi Kumar</p>
-          <p class="muted sp-8">Rating: 4.8 ⭐</p>
-          <p class="muted sp-8">Vehicle: KA 05 MN 2142</p>
-          <p class="muted sp-8">Ride: <span id="aRide"></span></p>
-        </div>
-        <div class="row sp-12">
-          <button class="btn btn-dark">Call</button>
-          <button class="btn btn-light">Chat</button>
-        </div>
-        <button class="btn btn-primary sp-16" onclick="go('progress')">Track Ride</button>
-      </section>
+function spawnRow() {
+  const z = H + 80;
+  const lane = Math.floor(Math.random()*3);
+  const r = Math.random();
+  if (r < 0.45) g.obstacles.push({lane,z,w:36,h:42});
+  else if (r < 0.62) g.trains.push({lane,z,w:52,h:60,speed: g.speed + 4});
+  else if (r < 0.86) g.coinsArr.push({lane,z,r:10});
+  else {
+    const types = ['magnet','jetpack','superjump','x2'];
+    g.powers.push({lane,z,t:types[Math.floor(Math.random()*types.length)]});
+  }
+}
 
-      <section id="progress" class="screen hidden">
-        <h2>Ride Status</h2>
-        <div class="card sp-20">
-          <p class="muted">Current status</p>
-          <p id="statusText" style="font-size:30px;font-weight:800;" class="sp-8">Arriving</p>
-          <span class="status-pill">Mock status flow</span>
-        </div>
-        <button id="nextStatusBtn" class="btn btn-primary sp-20" onclick="nextStatus()">Move to Next Status</button>
-      </section>
+function applyPower(p) {
+  if (p.t==='jetpack') g.invincibleT = Math.max(g.invincibleT, 5);
+  if (p.t==='x2') { g.mult = 2; setTimeout(()=>{ if(g.running) g.mult = 1; }, 6000); }
+  if (p.t==='superjump') g.vy = Math.max(g.vy, 16);
+  if (p.t==='magnet') {
+    const end = performance.now() + 5000;
+    const loop = () => {
+      if (!g.running || performance.now()>end) return;
+      g.coinsArr.forEach(co => { if (Math.abs(co.lane-g.lane)<=1) co.lane = g.lane; });
+      requestAnimationFrame(loop);
+    }; loop();
+  }
+}
 
-      <section id="captain-login" class="screen hidden">
-        <h2>Captain Login</h2>
-        <input class="input sp-20" placeholder="Phone number" />
-        <input class="input sp-12" placeholder="OTP" maxlength="6" />
-        <button class="btn btn-primary sp-20" onclick="go('captain-home')">Login (Mock)</button>
-      </section>
+function collide(item, playerBox) {
+  const x = laneX[item.lane], y = item.z;
+  return Math.abs(x-playerBox.x) < (playerBox.w/2 + (item.w||item.r||16)/2)
+    && Math.abs(y-playerBox.y) < (playerBox.h/2 + (item.h||item.r||16)/2);
+}
 
-      <section id="captain-home" class="screen hidden">
-        <div class="top-switch">
-          <h2>Captain Dashboard</h2>
-          <div>
-            <div id="onlineToggle" class="toggle on" onclick="toggleOnline()"></div>
-            <p id="onlineText" class="muted" style="font-size:12px;text-align:center;">Online</p>
-          </div>
-        </div>
-        <div class="card sp-20">
-          <p class="muted">Incoming Ride</p>
-          <p class="sp-8"><b>Pickup:</b> HSR Layout, Bengaluru</p>
-          <p class="sp-8"><b>Drop:</b> Koramangala 5th Block</p>
-          <p class="sp-8" style="font-size:20px;font-weight:800;">Fare: ₹176</p>
+function update(dt) {
+  if (!g.running || g.paused) return;
+  g.time += dt; g.distance += g.speed*dt; g.speed = Math.min(20, g.speed + dt*0.15);
+  g.score = Math.floor((g.distance + g.coins*8) * g.mult);
+  g.invincibleT = Math.max(0, g.invincibleT - dt);
+  g.hoverCooldown = Math.max(0, g.hoverCooldown - dt);
 
-          <div id="captainActions" class="row sp-16">
-            <button class="btn btn-primary" onclick="acceptRide()">Accept</button>
-            <button class="btn btn-light">Reject</button>
-          </div>
+  g.vy -= 30*dt; g.y += g.vy;
+  if (g.y < 0) { g.y = 0; g.vy = 0; }
+  if (g.slideT > 0) { g.slideT -= dt; if (g.slideT<=0) g.sliding = false; }
 
-          <div id="tripActions" class="hidden sp-16">
-            <button id="startBtn" class="btn btn-dark" onclick="startTrip()">Start Trip</button>
-            <button class="btn btn-success sp-12" onclick="endTrip()">End Trip</button>
-          </div>
-        </div>
-      </section>
-    </main>
+  g.spawnT -= dt;
+  if (g.spawnT <= 0) { spawnRow(); g.spawnT = 0.45 + Math.random()*0.35; }
 
-    <script>
-      const rides = [
-        { type: 'Bike', eta: '2 min', fare: 89, desc: 'Quick and affordable', icon: '🏍️' },
-        { type: 'Auto', eta: '4 min', fare: 129, desc: 'Comfort with space', icon: '🛺' },
-        { type: 'Cab', eta: '6 min', fare: 219, desc: 'Premium city ride', icon: '🚕' }
-      ];
-      let selected = rides[0];
-      const statuses = ['Arriving', 'On Trip', 'Completed'];
-      let statusIndex = 0;
-      let online = true;
+  const move = arr => arr.forEach(o=>o.z -= g.speed*8*dt);
+  move(g.obstacles); move(g.coinsArr); move(g.powers); g.trains.forEach(t=>t.z -= t.speed*7*dt);
 
-      const screens = ['auth','role','rider-home','confirm','searching','assigned','progress','captain-login','captain-home'];
-      function go(id) {
-        screens.forEach(s => document.getElementById(s).classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        if (id === 'rider-home') renderRides();
-      }
+  const p = {x: laneX[g.lane], y:120-g.y*3, w:36, h:g.sliding?20:44};
 
-      function renderRides() {
-        const box = document.getElementById('rides');
-        box.innerHTML = rides.map(r => `
-          <div class="ride-option ${selected.type===r.type?'active':''}" onclick="pickRide('${r.type}')">
-            <div><b>${r.icon} ${r.type}</b><div class="muted" style="font-size:12px">${r.desc}</div></div>
-            <div style="text-align:right"><div class="muted" style="font-size:12px">${r.eta}</div><b>₹${r.fare}</b></div>
-          </div>
-        `).join('<div class="sp-8"></div>');
-      }
+  g.coinsArr = g.coinsArr.filter(co => {
+    if (co.z < -30) return false;
+    if (collide({lane:co.lane,z:co.z,r:co.r}, p)) { g.coins++; return false; }
+    return true;
+  });
 
-      function pickRide(type) {
-        selected = rides.find(r => r.type === type);
-        renderRides();
-      }
+  g.powers = g.powers.filter(po => {
+    if (po.z < -30) return false;
+    if (collide({lane:po.lane,z:po.z,w:20,h:20}, p)) { applyPower(po); return false; }
+    return true;
+  });
 
-      function openConfirm() {
-        document.getElementById('cPickup').textContent = document.getElementById('pickup').value;
-        document.getElementById('cDrop').textContent = document.getElementById('drop').value;
-        document.getElementById('cRide').textContent = selected.type;
-        document.getElementById('cFare').textContent = `₹${selected.fare}`;
-        go('confirm');
-      }
+  const hit = [...g.obstacles, ...g.trains].some(ob => ob.z>-20 && collide(ob, p));
+  if (hit && g.invincibleT <= 0) endGame();
 
-      function searchDriver() {
-        go('searching');
-        setTimeout(() => {
-          document.getElementById('aRide').textContent = selected.type;
-          go('assigned');
-        }, 1800);
-      }
+  g.obstacles = g.obstacles.filter(o=>o.z>-40);
+  g.trains = g.trains.filter(t=>t.z>-60);
 
-      function nextStatus() {
-        statusIndex = Math.min(statusIndex + 1, statuses.length - 1);
-        document.getElementById('statusText').textContent = statuses[statusIndex];
-        if (statuses[statusIndex] === 'Completed') {
-          const btn = document.getElementById('nextStatusBtn');
-          btn.textContent = 'Back to Home';
-          btn.onclick = () => { statusIndex = 0; document.getElementById('statusText').textContent = statuses[0]; btn.textContent = 'Move to Next Status'; btn.onclick = nextStatus; go('rider-home'); };
-        }
-      }
+  score.textContent = `Score: ${g.score}`;
+  coins.textContent = `Coins: ${g.coins}`;
+  mult.textContent = `x${g.mult}`;
+}
 
-      function toggleOnline() {
-        online = !online;
-        document.getElementById('onlineToggle').classList.toggle('on', online);
-        document.getElementById('onlineText').textContent = online ? 'Online' : 'Offline';
-      }
-      function acceptRide() {
-        document.getElementById('captainActions').classList.add('hidden');
-        document.getElementById('tripActions').classList.remove('hidden');
-      }
-      function startTrip() {
-        const btn = document.getElementById('startBtn');
-        btn.textContent = 'Trip Started';
-        btn.disabled = true;
-      }
-      function endTrip() {
-        document.getElementById('captainActions').classList.remove('hidden');
-        document.getElementById('tripActions').classList.add('hidden');
-        const btn = document.getElementById('startBtn');
-        btn.textContent = 'Start Trip';
-        btn.disabled = false;
-      }
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#0c1631'; ctx.fillRect(0,0,W,H);
 
-      const otp = document.getElementById('otp');
-      const continueBtn = document.getElementById('continueBtn');
-      otp.addEventListener('input', () => {
-        continueBtn.disabled = otp.value.length !== 6;
-      });
-      continueBtn.addEventListener('click', () => go('role'));
+  // lanes perspective
+  for(let i=0;i<3;i++){
+    ctx.strokeStyle = '#2b477f'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(laneX[i], H); ctx.lineTo(laneX[i], 0); ctx.stroke();
+  }
 
-      renderRides();
-    </script>
-  </body>
+  const drawEntity = (lane,z,w,h,color,shape='rect') => {
+    const x=laneX[lane], y=z;
+    ctx.fillStyle=color;
+    if(shape==='coin'){ ctx.beginPath(); ctx.arc(x,y,10,0,Math.PI*2); ctx.fill(); return; }
+    ctx.fillRect(x-w/2,y-h/2,w,h);
+  };
+
+  g.obstacles.forEach(o=>drawEntity(o.lane,o.z,o.w,o.h,'#ff5a74'));
+  g.trains.forEach(t=>drawEntity(t.lane,t.z,t.w,t.h,'#90a4ff'));
+  g.coinsArr.forEach(co=>drawEntity(co.lane,co.z,20,20,'#ffd447','coin'));
+  g.powers.forEach(p=>drawEntity(p.lane,p.z,18,18,'#50f0ff'));
+
+  const py = 120-g.y*3;
+  drawEntity(g.lane, py, 36, g.sliding?20:44, g.invincibleT>0 ? '#77ff9a' : '#ffffff');
+
+  if (g.invincibleT>0){
+    ctx.strokeStyle = '#77ff9a'; ctx.lineWidth = 2; ctx.strokeRect(laneX[g.lane]-24, py-30, 48, 60);
+  }
+}
+
+let last = 0;
+function loop(ts){
+  const dt = Math.min(0.033, (ts-last)/1000 || 0.016); last = ts;
+  update(dt); draw(); requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function endGame(){
+  g.running = false;
+  finalScore.textContent = `Score: ${g.score}`;
+  finalCoins.textContent = `Coins: ${g.coins}`;
+  show('gameover');
+}
+
+function lane(delta){ g.lane = Math.max(0, Math.min(2, g.lane+delta)); }
+function jump(){ if(g.y===0) g.vy = 12; }
+function slide(){ if(g.y===0){ g.sliding=true; g.slideT=0.8; } }
+function hoverboard(){ if(g.hoverCooldown<=0){ g.invincibleT=5; g.hoverCooldown=10; } }
+
+let start = null, startT = 0, lastTap = 0;
+function inputStart(x,y){ start={x,y}; startT=performance.now(); }
+function inputEnd(x,y){
+  if(!start) return;
+  const dx = x-start.x, dy = y-start.y, adx=Math.abs(dx), ady=Math.abs(dy), t=performance.now()-startT;
+  if(adx<25 && ady<25 && t<220){
+    const now=performance.now(); if(now-lastTap<280) hoverboard(); lastTap=now; start=null; return;
+  }
+  if(adx>ady){ dx>0 ? lane(1) : lane(-1); }
+  else { dy<0 ? jump() : slide(); }
+  start=null;
+}
+
+c.addEventListener('touchstart', e=>inputStart(e.touches[0].clientX,e.touches[0].clientY), {passive:true});
+c.addEventListener('touchend', e=>inputEnd(e.changedTouches[0].clientX,e.changedTouches[0].clientY));
+c.addEventListener('mousedown', e=>inputStart(e.clientX,e.clientY));
+c.addEventListener('mouseup', e=>inputEnd(e.clientX,e.clientY));
+
+// UI
+const score = document.getElementById('score');
+const coins = document.getElementById('coins');
+const mult = document.getElementById('mult');
+
+document.getElementById('toMenu').onclick = () => show('menu');
+document.getElementById('startBtn').onclick = () => { resetGame(); show('game'); };
+document.getElementById('restartBtn').onclick = () => { resetGame(); show('game'); };
+document.getElementById('homeBtn').onclick = () => show('menu');
+document.getElementById('pauseBtn').onclick = () => { g.paused = true; pausePanel.classList.add('active'); };
+document.getElementById('resumeBtn').onclick = () => { g.paused = false; pausePanel.classList.remove('active'); };
+
+resetGame();
+</script>
+</body>
 </html>

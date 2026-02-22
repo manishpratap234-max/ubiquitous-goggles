@@ -40,3 +40,8 @@ If you want to turn this scaffold into a real, launch-ready product, follow the 
 - [`docs/PROPER_APP_GUIDE.html`](docs/PROPER_APP_GUIDE.html)
 
 This guide provides phased milestones, must-have launch checklist, and exact next implementation steps.
+
+
+## Additional Prototype
+
+- Unity endless runner scaffold (Subway Surfers style): `unity/EndlessRunner/README.md`
