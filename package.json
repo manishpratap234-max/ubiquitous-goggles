@@ -1,0 +1,17 @@
+{
+  "name": "ride-hailing-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "backend",
+    "apps/rider-app",
+    "apps/captain-app",
+    "apps/admin-dashboard"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:rider": "npm --workspace apps/rider-app run start",
+    "dev:captain": "npm --workspace apps/captain-app run start",
+    "dev:admin": "npm --workspace apps/admin-dashboard run dev"
+  }
+}
