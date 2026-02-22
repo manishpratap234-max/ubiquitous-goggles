@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proper Ride-Hailing App Build Guide</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: #111b2e;
+        --text: #e8eefc;
+        --muted: #a6b4d4;
+        --accent: #66b3ff;
+        --ok: #7ce38b;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        line-height: 1.6;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 32px 20px 64px;
+      }
+      h1, h2, h3 { line-height: 1.25; }
+      h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+      h2 {
+        margin-top: 2rem;
+        padding: 10px 14px;
+        background: var(--panel);
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+      }
+      p, li { color: var(--muted); }
+      strong { color: var(--text); }
+      code {
+        background: #17233b;
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: #c5ddff;
+      }
+      hr {
+        border: none;
+        border-top: 1px solid #22314f;
+        margin: 24px 0;
+      }
+      .checklist li { margin: 6px 0; }
+      .checklist li::marker { color: var(--ok); }
+      .card {
+        background: #101a2d;
+        border: 1px solid #1d2b47;
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      .note {
+        margin-top: 20px;
+        padding: 14px 16px;
+        background: #0f213d;
+        border: 1px solid #244673;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>How to Build a Proper Production App From This Scaffold</h1>
+      <p>
+        This repository is a <strong>starter architecture</strong>, not a finished Rapido/Uber clone.
+        Use this plan to transform it into a real production ride-hailing platform.
+      </p>
+
+      <hr />
+
+      <h2>0) What “proper app” means</h2>
+      <ul>
+        <li>Reliable OTP login with anti-abuse controls</li>
+        <li>Accurate maps, routing, ETA and fare</li>
+        <li>Strong dispatch/matching under load</li>
+        <li>Crash-safe ride lifecycle + reconciliation</li>
+        <li>Real payments + refunds + webhooks</li>
+        <li>Driver KYC workflow and audit trail</li>
+        <li>Observability, alerts, backups, and CI/CD</li>
+        <li>Security hardening and compliance</li>
+      </ul>
+
+      <h2>1) Phase 1 (Week 1–2): Foundation Hardening</h2>
+      <div class="card">
+        <h3>Backend</h3>
+        <ol>
+          <li>Replace static OTP with Twilio/MSG91 provider.</li>
+          <li>Store hashed OTP + add resend cooldown and attempt limits.</li>
+          <li>Add request validation for all mutating routes.</li>
+          <li>Add structured logging (<code>pino</code>) and request IDs.</li>
+          <li>Add global error taxonomy (validation/auth/business/infra).</li>
+          <li>Add indexes + geospatial index by moving location to GeoJSON.</li>
+        </ol>
+
+        <h3>Frontend apps</h3>
+        <ol>
+          <li>Secure token storage (<code>expo-secure-store</code> for mobile).</li>
+          <li>API interceptors for 401 refresh and retries.</li>
+          <li>Consistent design system (tokens + reusable components).</li>
+        </ol>
+
+        <h3>Ops</h3>
+        <ol>
+          <li>Dockerize backend and admin dashboard.</li>
+          <li>Use secret manager + per-environment config.</li>
+          <li>Add CI for lint, test, build, and security scans.</li>
+        </ol>
+      </div>
+
+      <h2>2) Phase 2 (Week 3–4): Real Ride Booking Core</h2>
+      <ol>
+        <li>Integrate Google Places, Routes/Distance Matrix, Geocoding.</li>
+        <li>Use geospatial queries (<code>$near</code>) for nearest driver matching.</li>
+        <li>Enforce strict ride state machine transitions.</li>
+        <li>Add cancellation policy and charges rules.</li>
+        <li>Implement retry-safe dispatch (timeout/reject fallback).</li>
+      </ol>
+
+      <h2>3) Phase 3 (Week 5–6): Payments, Wallet, Promo</h2>
+      <ol>
+        <li>Integrate Stripe/Razorpay with webhook verification and idempotency.</li>
+        <li>Create immutable wallet ledger entries.</li>
+        <li>Implement promo rules and caps.</li>
+        <li>Generate invoices (PDF/email, tax fields where needed).</li>
+      </ol>
+
+      <h2>4) Phase 4 (Week 7–8): Captain KYC + Admin Power Tools</h2>
+      <ol>
+        <li>Upload docs to S3/GCS + OCR/manual review pipeline.</li>
+        <li>Admin controls: live rides map, pricing, commission, suspensions.</li>
+        <li>Earnings settlement and payout statements.</li>
+      </ol>
+
+      <h2>5) Phase 5: Reliability + Scale</h2>
+      <ol>
+        <li>Scale Socket.IO with Redis adapter.</li>
+        <li>Add BullMQ workers (matching retries, notifications, scheduled rides).</li>
+        <li>Use Redis caching for hot geospatial lookups.</li>
+        <li>Run load tests for dispatch and socket fan-out.</li>
+      </ol>
+
+      <h2>6) Minimum launch checklist (MVP+)</h2>
+      <ul class="checklist">
+        <li>OTP provider with abuse prevention</li>
+        <li>Secure auth storage + refresh flow</li>
+        <li>Pickup/drop search + route ETA + fare estimate</li>
+        <li>Nearest-driver assignment with retry logic</li>
+        <li>Live location updates every 2–4 seconds</li>
+        <li>Guarded ride lifecycle transitions</li>
+        <li>Payment collection + webhook reconciliation</li>
+        <li>Chat + masked calling</li>
+        <li>SOS and emergency flow</li>
+        <li>Ratings + support ticketing</li>
+        <li>Admin KYC approvals/suspensions</li>
+        <li>Monitoring + alerts</li>
+      </ul>
+
+      <h2>7) Suggested production architecture</h2>
+      <ul>
+        <li><strong>API:</strong> Express services (auth/rides/pricing/payments)</li>
+        <li><strong>Realtime:</strong> Socket.IO gateway + Redis adapter</li>
+        <li><strong>Workers:</strong> BullMQ async workflows</li>
+        <li><strong>Database:</strong> MongoDB replica set + backups</li>
+        <li><strong>Cache:</strong> Redis</li>
+        <li><strong>Storage:</strong> S3/GCS for docs/invoices</li>
+        <li><strong>Notifications:</strong> FCM + SMS provider</li>
+        <li><strong>Observability:</strong> OpenTelemetry + dashboards + alerts</li>
+      </ul>
+
+      <h2>8) Implement first in this repository</h2>
+      <ol>
+        <li>Backend: OTP provider abstraction + state machine + geospatial lookup.</li>
+        <li>Rider app: auth, location search, booking confirm, live tracking.</li>
+        <li>Captain app: incoming request timer, navigation deep-link, trip actions.</li>
+        <li>Admin dashboard: login, KYC queue, pricing CRUD, live rides table.</li>
+        <li>Tests: integration tests for auth, booking, transitions, payment webhooks.</li>
+      </ol>
+
+      <div class="note">
+        Follow these phases in order to turn the starter scaffold into a production-grade
+        ride-hailing platform.
+      </div>
+    </main>
+  </body>
+</html>
