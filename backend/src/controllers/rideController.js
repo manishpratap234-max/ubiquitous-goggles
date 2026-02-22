@@ -79,4 +79,10 @@ async function listMyRides(req, res) {
   return ok(res, rides, 'Ride history fetched');
 }
 
-module.exports = { estimateFare, createRide, updateRideStatus, listMyRides };
+async function getRideById(req, res) {
+  const ride = await Ride.findById(req.params.id);
+  if (!ride) return fail(res, 404, 'Ride not found');
+  return ok(res, ride, 'Ride fetched');
+}
+
+module.exports = { estimateFare, createRide, updateRideStatus, listMyRides, getRideById };
