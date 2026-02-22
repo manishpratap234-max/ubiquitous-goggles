@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes');
 const rideRoutes = require('./routes/rideRoutes');
 const captainRoutes = require('./routes/captainRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const userRoutes = require('./routes/userRoutes');
+const driverRoutes = require('./routes/driverRoutes');
 const { errorHandler } = require('./middleware/error');
 
 const app = express();
@@ -19,6 +21,8 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/rides', rideRoutes);
 app.use('/api/captain', captainRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/drivers', driverRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use(errorHandler);
